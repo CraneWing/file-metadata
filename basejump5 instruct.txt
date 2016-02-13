@@ -12,6 +12,4 @@ Hint: You may want to use this package: https://www.npmjs.com/package/multer
 Here is a tut on using multer, a Node module that enables Express to have file uploading. And metadata is returned too!
 https://www.terlici.com/2015/05/16/uploading-files-locally.html
 
-    
-
-
+URL for this app is http://img-metadata-cranewing.c9users.io

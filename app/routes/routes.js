@@ -1,57 +1,33 @@
-'use strict';
+var express    = require('express'),
+    bodyParser = require('body-parser'),
+    fs         = require('fs'),
+    multer     = require('multer'),
+    upload     = multer({
+                  dest: 'uploads/'
+                }),
+	router     = express.Router();
 
-var path = process.cwd();
-var ClickHandler = require(path + '/app/controllers/clickHandler.server.js');
+router.get('/', function(req, res) {
+  res.render('index');
+});
 
-module.exports = function (app, passport) {
+router.post('/upload', upload.single('file'), function(req, res) {
+  var fileInfo = {
+      "name": req.file.originalname,
+      "mime_type": req.file.mimetype,
+      "size": req.file.size
+  };
+  
+  fs.unlink(req.file.path, function(err) {
+    if (err) {
+      console.log('An error occurred: ' + err);
+    }
+    else {
+      console.log('File was deleted');
+    }
+  });
+  
+  res.send(fileInfo);
+});
 
-	function isLoggedIn (req, res, next) {
-		if (req.isAuthenticated()) {
-			return next();
-		} else {
-			res.redirect('/login');
-		}
-	}
-
-	var clickHandler = new ClickHandler();
-
-	app.route('/')
-		.get(isLoggedIn, function (req, res) {
-			res.sendFile(path + '/public/index.html');
-		});
-
-	app.route('/login')
-		.get(function (req, res) {
-			res.sendFile(path + '/public/login.html');
-		});
-
-	app.route('/logout')
-		.get(function (req, res) {
-			req.logout();
-			res.redirect('/login');
-		});
-
-	app.route('/profile')
-		.get(isLoggedIn, function (req, res) {
-			res.sendFile(path + '/public/profile.html');
-		});
-
-	app.route('/api/:id')
-		.get(isLoggedIn, function (req, res) {
-			res.json(req.user.github);
-		});
-
-	app.route('/auth/github')
-		.get(passport.authenticate('github'));
-
-	app.route('/auth/github/callback')
-		.get(passport.authenticate('github', {
-			successRedirect: '/',
-			failureRedirect: '/login'
-		}));
-
-	app.route('/api/:id/clicks')
-		.get(isLoggedIn, clickHandler.getClicks)
-		.post(isLoggedIn, clickHandler.addClick)
-		.delete(isLoggedIn, clickHandler.resetClicks);
-};
+module.exports = router;
